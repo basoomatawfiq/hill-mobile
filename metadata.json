@@ -1,0 +1,8 @@
+{
+  "name": "HILL MOBILE",
+  "description": "Free live broadcasts and recorded programmes from the official HILL MOBILE YouTube channel (@samiwabasriugandatrueislam688).",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

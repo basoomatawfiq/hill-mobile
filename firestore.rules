@@ -1,0 +1,320 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Primitive Helpers ---
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwnerEmail() {
+      return isVerifiedUser() && request.auth.token.email in [
+        'basoomatawfiq1427@gmail.com',
+        'samiwabasri.ug@gmail.com'
+      ];
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && (
+        isOwnerEmail() ||
+        exists(/databases/$(database)/documents/administrators/$(request.auth.uid))
+      );
+    }
+
+    // --- Validation Blueprints ---
+    function isValidAdministrator(data, adminId) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'role', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'email', 'displayName', 'role', 'createdAt', 'updatedAt'])
+        && isValidId(data.uid)
+        && data.uid == adminId
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 160
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120
+        && data.role in ['owner', 'editor']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidCategory(data, categoryId) {
+      return data.keys().hasAll(['id', 'name', 'slug', 'description', 'sortOrder', 'createdByUid', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'name', 'slug', 'description', 'sortOrder', 'createdByUid', 'createdAt', 'updatedAt'])
+        && isValidId(data.id)
+        && data.id == categoryId
+        && data.id.size() <= 64
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 60
+        && data.slug is string && data.slug.size() >= 2 && data.slug.size() <= 64 && data.slug.matches('^[a-z0-9\\-]+$')
+        && data.description is string && data.description.size() <= 280
+        && data.sortOrder is int && data.sortOrder >= 0 && data.sortOrder <= 10000
+        && isValidId(data.createdByUid)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidProgramme(data, programmeId) {
+      return data.keys().hasAll([
+          'videoId', 'title', 'description', 'thumbnailUrl', 'publishedAt',
+          'categoryId', 'categoryName', 'isFeatured', 'isAvailable', 'updatedByUid',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'videoId', 'title', 'description', 'thumbnailUrl', 'publishedAt',
+          'categoryId', 'categoryName', 'isFeatured', 'isAvailable', 'updatedByUid',
+          'createdAt', 'updatedAt'
+        ])
+        && data.videoId is string && data.videoId.size() >= 6 && data.videoId.size() <= 32 && data.videoId.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.videoId == programmeId
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 200
+        && data.description is string && data.description.size() <= 5000
+        && data.thumbnailUrl is string && data.thumbnailUrl.size() >= 1 && data.thumbnailUrl.size() <= 500
+        && data.publishedAt is string && data.publishedAt.size() >= 4 && data.publishedAt.size() <= 64
+        && data.categoryId is string && data.categoryId.size() <= 64
+        && data.categoryName is string && data.categoryName.size() <= 60
+        && data.isFeatured is bool
+        && data.isAvailable is bool
+        && isValidId(data.updatedByUid)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidFeaturedProgramme(data, featuredId) {
+      return data.keys().hasAll([
+          'videoId', 'title', 'thumbnailUrl', 'publishedAt', 'categoryName',
+          'note', 'sortOrder', 'updatedByUid', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'videoId', 'title', 'thumbnailUrl', 'publishedAt', 'categoryName',
+          'note', 'sortOrder', 'updatedByUid', 'createdAt', 'updatedAt'
+        ])
+        && data.videoId is string && data.videoId.size() >= 6 && data.videoId.size() <= 32 && data.videoId.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.videoId == featuredId
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 200
+        && data.thumbnailUrl is string && data.thumbnailUrl.size() >= 1 && data.thumbnailUrl.size() <= 500
+        && data.publishedAt is string && data.publishedAt.size() >= 4 && data.publishedAt.size() <= 64
+        && data.categoryName is string && data.categoryName.size() <= 60
+        && data.note is string && data.note.size() <= 240
+        && data.sortOrder is int && data.sortOrder >= 0 && data.sortOrder <= 1000
+        && isValidId(data.updatedByUid)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidNotification(data) {
+      return data.keys().hasAll(['type', 'title', 'body', 'videoId', 'sentByUid', 'createdAt'])
+        && data.keys().hasOnly(['type', 'title', 'body', 'videoId', 'sentByUid', 'createdAt'])
+        && data.type in ['live', 'announcement']
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 120
+        && data.body is string && data.body.size() >= 1 && data.body.size() <= 500
+        && data.videoId is string && data.videoId.size() <= 32
+        && isValidId(data.sentByUid)
+        && data.sentByUid == request.auth.uid
+        && data.createdAt is timestamp;
+    }
+
+    function isValidAppSettings(data) {
+      return data.keys().hasAll([
+          'stationName', 'channelHandle', 'aboutTitle', 'aboutBody',
+          'missionStatement', 'contactEmail', 'contactPhone', 'contactLocation',
+          'updatedByUid', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'stationName', 'channelHandle', 'aboutTitle', 'aboutBody',
+          'missionStatement', 'contactEmail', 'contactPhone', 'contactLocation',
+          'updatedByUid', 'updatedAt'
+        ])
+        && data.stationName is string && data.stationName.size() >= 2 && data.stationName.size() <= 80
+        && data.channelHandle is string && data.channelHandle.size() >= 2 && data.channelHandle.size() <= 80
+        && data.aboutTitle is string && data.aboutTitle.size() >= 2 && data.aboutTitle.size() <= 140
+        && data.aboutBody is string && data.aboutBody.size() >= 10 && data.aboutBody.size() <= 3000
+        && data.missionStatement is string && data.missionStatement.size() >= 5 && data.missionStatement.size() <= 600
+        && data.contactEmail is string && data.contactEmail.size() >= 3 && data.contactEmail.size() <= 160
+        && data.contactPhone is string && data.contactPhone.size() <= 60
+        && data.contactLocation is string && data.contactLocation.size() <= 200
+        && isValidId(data.updatedByUid)
+        && data.updatedByUid == request.auth.uid
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAuditLog(data) {
+      return data.keys().hasAll(['action', 'actorUid', 'actorEmail', 'targetType', 'targetId', 'details', 'status', 'createdAt'])
+        && data.keys().hasOnly(['action', 'actorUid', 'actorEmail', 'targetType', 'targetId', 'details', 'status', 'createdAt'])
+        && data.action is string && data.action.size() >= 2 && data.action.size() <= 80
+        && isValidId(data.actorUid)
+        && data.actorUid == request.auth.uid
+        && data.actorEmail is string && data.actorEmail.size() >= 3 && data.actorEmail.size() <= 160
+        && data.targetType is string && data.targetType.size() >= 1 && data.targetType.size() <= 60
+        && data.targetId is string && data.targetId.size() <= 128
+        && data.details is string && data.details.size() <= 1000
+        && data.status in ['success', 'warning', 'error']
+        && data.createdAt is timestamp;
+    }
+
+    // --- Collection Rules ---
+
+    // Startup connection test document
+    match /test/connection {
+      allow get: if true;
+      allow list, create, update, delete: if false;
+    }
+
+    // Administrators (PII protected; owner email bootstrapped)
+    match /administrators/{adminId} {
+      allow get: if isValidId(adminId) && (
+        (isVerifiedUser() && request.auth.uid == adminId) ||
+        isAdmin()
+      );
+      allow list: if isVerifiedUser() && (
+        isOwnerEmail() ||
+        resource.data.uid == request.auth.uid
+      );
+      allow create: if isOwnerEmail()
+        && isValidId(adminId)
+        && isValidAdministrator(incoming(), adminId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isOwnerEmail()
+        && isValidId(adminId)
+        && isValidAdministrator(incoming(), adminId)
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['email', 'displayName', 'role', 'updatedAt']);
+      allow delete: if isOwnerEmail() && isValidId(adminId) && adminId != request.auth.uid;
+    }
+
+    // Categories (Public read for free browsing; Admin write)
+    match /categories/{categoryId} {
+      allow get: if isValidId(categoryId);
+      allow list: if true;
+      allow create: if isAdmin()
+        && isValidId(categoryId)
+        && isValidCategory(incoming(), categoryId)
+        && incoming().createdByUid == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(categoryId)
+        && isValidCategory(incoming(), categoryId)
+        && incoming().id == existing().id
+        && incoming().createdByUid == existing().createdByUid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'slug', 'description', 'sortOrder', 'updatedAt']);
+      allow delete: if isAdmin() && isValidId(categoryId);
+    }
+
+    // Programmes (Public read; Admin write)
+    match /programmes/{programmeId} {
+      allow get: if isValidId(programmeId);
+      allow list: if true;
+      allow create: if isAdmin()
+        && isValidId(programmeId)
+        && isValidProgramme(incoming(), programmeId)
+        && incoming().updatedByUid == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(programmeId)
+        && isValidProgramme(incoming(), programmeId)
+        && incoming().videoId == existing().videoId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedByUid == request.auth.uid
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'description', 'thumbnailUrl', 'publishedAt',
+          'categoryId', 'categoryName', 'isFeatured', 'isAvailable',
+          'updatedByUid', 'updatedAt'
+        ]);
+      allow delete: if isAdmin() && isValidId(programmeId);
+    }
+
+    // Featured Programmes (Public read; Admin write)
+    match /featured_programmes/{featuredId} {
+      allow get: if isValidId(featuredId);
+      allow list: if true;
+      allow create: if isAdmin()
+        && isValidId(featuredId)
+        && isValidFeaturedProgramme(incoming(), featuredId)
+        && incoming().updatedByUid == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(featuredId)
+        && isValidFeaturedProgramme(incoming(), featuredId)
+        && incoming().videoId == existing().videoId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedByUid == request.auth.uid
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'thumbnailUrl', 'publishedAt', 'categoryName',
+          'note', 'sortOrder', 'updatedByUid', 'updatedAt'
+        ]);
+      allow delete: if isAdmin() && isValidId(featuredId);
+    }
+
+    // Notifications (Public read; Admin create/delete)
+    match /notifications/{notificationId} {
+      allow get: if isValidId(notificationId);
+      allow list: if true;
+      allow create: if isAdmin()
+        && isValidId(notificationId)
+        && isValidNotification(incoming())
+        && incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if isAdmin() && isValidId(notificationId);
+    }
+
+    // App Settings (Only 'public' doc readable by viewers; Admin write)
+    match /app_settings/{settingId} {
+      allow get: if isValidId(settingId) && (settingId == 'public' || isAdmin());
+      allow list: if isOwnerEmail();
+      allow create: if isAdmin()
+        && isValidId(settingId)
+        && isValidAppSettings(incoming())
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin()
+        && isValidId(settingId)
+        && isValidAppSettings(incoming())
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'stationName', 'channelHandle', 'aboutTitle', 'aboutBody',
+          'missionStatement', 'contactEmail', 'contactPhone', 'contactLocation',
+          'updatedByUid', 'updatedAt'
+        ]);
+      allow delete: if false;
+    }
+
+    // Audit Logs (Admin read; Append-only create; No update/delete)
+    match /audit_logs/{logId} {
+      allow get: if isValidId(logId) && isAdmin();
+      allow list: if isVerifiedUser() && (
+        isOwnerEmail() ||
+        resource.data.actorUid == request.auth.uid
+      );
+      allow create: if isAdmin()
+        && isValidId(logId)
+        && isValidAuditLog(incoming())
+        && incoming().createdAt == request.time;
+      allow update, delete: if false;
+    }
+  }
+}

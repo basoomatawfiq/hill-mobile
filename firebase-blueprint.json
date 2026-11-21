@@ -1,0 +1,421 @@
+{
+  "entities": {
+    "Administrator": {
+      "title": "Administrator",
+      "description": "Authorized HILL MOBILE administrator record keyed by Firebase Auth UID.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Firebase Auth UID of the administrator."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 160,
+          "description": "Verified Google email address of the administrator."
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Human-readable name for the administrator."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["owner", "editor"],
+          "description": "Administrator role level."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": ["uid", "email", "displayName", "role", "createdAt", "updatedAt"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Administrator-managed programme category for organizing recorded broadcasts.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 60
+        },
+        "slug": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9\\-]+$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 280
+        },
+        "sortOrder": {
+          "type": "integer"
+        },
+        "createdByUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "name", "slug", "description", "sortOrder", "createdByUid", "createdAt", "updatedAt"]
+    },
+    "Programme": {
+      "title": "Programme",
+      "description": "Synchronized or categorized YouTube programme metadata.",
+      "type": "object",
+      "properties": {
+        "videoId": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 32,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "description": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 5000
+        },
+        "thumbnailUrl": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "publishedAt": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 64
+        },
+        "categoryId": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 64
+        },
+        "categoryName": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 60
+        },
+        "isFeatured": {
+          "type": "boolean"
+        },
+        "isAvailable": {
+          "type": "boolean"
+        },
+        "updatedByUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "videoId",
+        "title",
+        "description",
+        "thumbnailUrl",
+        "publishedAt",
+        "categoryId",
+        "categoryName",
+        "isFeatured",
+        "isAvailable",
+        "updatedByUid",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "FeaturedProgramme": {
+      "title": "FeaturedProgramme",
+      "description": "Curated featured programme slot displayed on the HILL MOBILE home screen.",
+      "type": "object",
+      "properties": {
+        "videoId": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 32,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "thumbnailUrl": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "publishedAt": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 64
+        },
+        "categoryName": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 60
+        },
+        "note": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 240
+        },
+        "sortOrder": {
+          "type": "integer"
+        },
+        "updatedByUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "videoId",
+        "title",
+        "thumbnailUrl",
+        "publishedAt",
+        "categoryName",
+        "note",
+        "sortOrder",
+        "updatedByUid",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "NotificationItem": {
+      "title": "NotificationItem",
+      "description": "Live broadcast notification or administrator announcement.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["live", "announcement"]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "videoId": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 32
+        },
+        "sentByUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["type", "title", "body", "videoId", "sentByUid", "createdAt"]
+    },
+    "AppSettings": {
+      "title": "AppSettings",
+      "description": "Public HILL MOBILE station information, About HILL content, and Contact details.",
+      "type": "object",
+      "properties": {
+        "stationName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "channelHandle": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "aboutTitle": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 140
+        },
+        "aboutBody": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 3000
+        },
+        "missionStatement": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 600
+        },
+        "contactEmail": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 160
+        },
+        "contactPhone": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 60
+        },
+        "contactLocation": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 200
+        },
+        "updatedByUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "stationName",
+        "channelHandle",
+        "aboutTitle",
+        "aboutBody",
+        "missionStatement",
+        "contactEmail",
+        "contactPhone",
+        "contactLocation",
+        "updatedByUid",
+        "updatedAt"
+      ]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Immutable audit trail of administrator actions and synchronization events.",
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "actorUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "actorEmail": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 160
+        },
+        "targetType": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "targetId": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 128
+        },
+        "details": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 1000
+        },
+        "status": {
+          "type": "string",
+          "enum": ["success", "warning", "error"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["action", "actorUid", "actorEmail", "targetType", "targetId", "details", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/administrators/{adminId}": {
+      "schema": { "$ref": "#/entities/Administrator" },
+      "description": "Authorized administrator profiles."
+    },
+    "/categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/Category" },
+      "description": "Programme categories managed by administrators."
+    },
+    "/programmes/{programmeId}": {
+      "schema": { "$ref": "#/entities/Programme" },
+      "description": "Categorized and featured YouTube programme metadata."
+    },
+    "/featured_programmes/{featuredId}": {
+      "schema": { "$ref": "#/entities/FeaturedProgramme" },
+      "description": "Featured programmes curated for the home screen."
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/NotificationItem" },
+      "description": "Live broadcast notifications and admin announcements."
+    },
+    "/app_settings/{settingId}": {
+      "schema": { "$ref": "#/entities/AppSettings" },
+      "description": "Public station information and contact settings."
+    },
+    "/audit_logs/{logId}": {
+      "schema": { "$ref": "#/entities/AuditLog" },
+      "description": "Immutable administrator audit log entries."
+    }
+  }
+}

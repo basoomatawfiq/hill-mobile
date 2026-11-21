@@ -1,0 +1,101 @@
+name: Build HILL MOBILE Android APK (ZIP)
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_url:
+        description: 'Public Cloud Run HTTPS URL of HILL MOBILE (without AI Studio auth gate)'
+        required: true
+        default: 'https://YOUR-CLOUD-RUN-SERVICE.run.app'
+      package_id:
+        description: 'Android Package ID'
+        required: true
+        default: 'org.hillmobile.app'
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Bubblewrap CLI
+        run: npm install -g @bubblewrap/cli
+
+      - name: Configure Bubblewrap JDK & Android SDK
+        run: |
+          mkdir -p ~/.bubblewrap
+          SDK_DIR="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          cat <<EOF > ~/.bubblewrap/config.json
+          {
+            "jdkPath": "${JAVA_HOME}",
+            "androidSdkPath": "${SDK_DIR}"
+          }
+          EOF
+          yes | "${SDK_DIR}/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null 2>&1 || true
+
+      - name: Generate Keystore & Build Signed APK
+        env:
+          APP_URL: ${{ inputs.app_url }}
+          PACKAGE_ID: ${{ inputs.package_id }}
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'hillmobile123' }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'hillmobile123' }}
+        run: |
+          mkdir -p twa-build
+          cd twa-build
+          HOST="$(echo "$APP_URL" | sed -E 's|^https?://([^/]+).*|\1|')"
+          cat <<EOF > twa-manifest.json
+          {
+            "packageId": "${PACKAGE_ID}",
+            "host": "${HOST}",
+            "name": "HILL MOBILE",
+            "launcherName": "HILL MOBILE",
+            "display": "standalone",
+            "themeColor": "#7A0F6D",
+            "navigationColor": "#120711",
+            "navigationColorDark": "#120711",
+            "backgroundColor": "#120711",
+            "enableNotifications": true,
+            "startUrl": "/",
+            "iconUrl": "${APP_URL%/}/pwa-512x512.png",
+            "maskableIconUrl": "${APP_URL%/}/pwa-maskable-512x512.png",
+            "splashScreenFadeOutDuration": 300,
+            "signingKey": {
+              "path": "./android.keystore",
+              "alias": "hillmobile"
+            },
+            "appVersionCode": 1,
+            "appVersionName": "1.0.0",
+            "shortcuts": [],
+            "generatorApp": "bubblewrap-cli",
+            "webManifestUrl": "${APP_URL%/}/manifest.webmanifest",
+            "fallbackType": "customtabs",
+            "features": {},
+            "alphaDependencies": {
+              "enabled": false
+            },
+            "enableSiteSettingsShortcut": true,
+            "isChromeOSOnly": false,
+            "orientation": "default"
+          }
+          EOF
+          keytool -genkeypair -v -keystore android.keystore -alias hillmobile -keyalg RSA -keysize 2048 -validity 10000 -storepass "${BUBBLEWRAP_KEYSTORE_PASSWORD}" -keypass "${BUBBLEWRAP_KEY_PASSWORD}" -dname "CN=HILL MOBILE, O=HILL MOBILE, C=UG"
+          bubblewrap update --skipVersionUpgrade
+          bubblewrap build --skipPwaValidation
+          mkdir -p output
+          cp app-release-signed.apk output/HILL-MOBILE.apk
+          keytool -list -v -keystore android.keystore -alias hillmobile -storepass "${BUBBLEWRAP_KEYSTORE_PASSWORD}" | grep "SHA256:" > output/SHA256_FINGERPRINT.txt
+
+      - name: Upload Shareable APK ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: hill-mobile-android-apk
+          path: twa-build/output/

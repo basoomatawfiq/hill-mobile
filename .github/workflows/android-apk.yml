@@ -97,10 +97,16 @@ jobs:
           }
           EOF
           keytool -genkeypair -v -keystore android.keystore -alias hillmobile -keyalg RSA -keysize 2048 -validity 10000 -storepass "${BUBBLEWRAP_KEYSTORE_PASSWORD}" -keypass "${BUBBLEWRAP_KEY_PASSWORD}" -dname "CN=HILL MOBILE, O=HILL MOBILE, C=UG"
+          SDK_DIR="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          export ANDROID_HOME="$SDK_DIR"
+          export ANDROID_SDK_ROOT="$SDK_DIR"
+          echo "sdk.dir=$SDK_DIR" > local.properties
           bubblewrap update --skipVersionUpgrade
-          bubblewrap build --skipPwaValidation
+          ./gradlew assembleRelease
           mkdir -p output
-          cp app-release-signed.apk output/HILL-MOBILE.apk
+          APK_FILE="$(find . -path '*build/outputs/apk/*/*.apk' -o -path '*build/outputs/apk/*.apk' | head -n 1)"
+          test -n "$APK_FILE"
+          cp "$APK_FILE" output/HILL-MOBILE.apk
           keytool -list -v -keystore android.keystore -alias hillmobile -storepass "${BUBBLEWRAP_KEYSTORE_PASSWORD}" | grep "SHA256:" > output/SHA256_FINGERPRINT.txt
 
       - name: Upload Shareable APK ZIP

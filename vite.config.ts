@@ -22,6 +22,8 @@ export default defineConfig(() => {
           'offline.html',
           'push-sw.js',
           'assets/aistudio/WhatsApp_Image_2026-11-20_at_06.30.25_17e6e149.jpeg',
+          'assets/aistudio/WhatsApp_Image_2026-11-21_at_05.08.28_8c28203a.jpeg',
+          'assets/aistudio/WhatsApp_Image_2026-11-21_at_07.13.36_7c12e459.jpeg',
         ],
         manifest: {
           id: '/',
@@ -57,7 +59,7 @@ export default defineConfig(() => {
         },
         workbox: {
           importScripts: [`${base}push-sw.js`],
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,jpg}'],
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,jpg,jpeg}'],
           navigateFallback: '/index.html',
           navigateFallbackDenylist: [/^\/api\//],
           runtimeCaching: [

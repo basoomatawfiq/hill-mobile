@@ -16,7 +16,7 @@ import { useOnlineStatus } from '../hooks/useOnlineStatus.ts';
 import { usePushNotifications } from '../hooks/usePushNotifications.ts';
 import type { AppSettingsRecord, NotificationRecord, ScreenRoute } from '../types.ts';
 
-const ABOUT_SANCTUARY_IMAGE = `${import.meta.env.BASE_URL}src/assets/images/about_hill_sanctuary_1795184241660.jpg`;
+const ABOUT_SANCTUARY_IMAGE = `${import.meta.env.BASE_URL}assets/aistudio/WhatsApp_Image_2026-11-21_at_07.13.36_7c12e459.jpeg`;
 
 function formatTimestamp(ts: unknown): string {
   if (!ts) return 'Recently';
@@ -160,11 +160,11 @@ export const AboutScreen: React.FC<{ settings: AppSettingsRecord }> = ({ setting
   return (
     <div className="space-y-8 pb-8 max-w-5xl">
       <div className="overflow-hidden rounded-3xl border border-white/10 bg-[#1C0D1B]">
-        <div className="aspect-[16/7] w-full bg-[#120711] relative">
+        <div className="aspect-[16/10] sm:aspect-[16/8] w-full bg-[#120711] relative">
           <img
             src={ABOUT_SANCTUARY_IMAGE}
-            alt="HILL MOBILE Community Center"
-            className="h-full w-full object-cover"
+            alt="HILL TV Broadcast Control Room"
+            className="h-full w-full object-cover object-[center_20%]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#1C0D1B] via-black/30 to-transparent" />
         </div>

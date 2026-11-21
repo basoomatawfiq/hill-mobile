@@ -20,7 +20,7 @@ import type {
   ScreenRoute,
 } from '../types.ts';
 
-const HERO_STUDIO_IMAGE = `${import.meta.env.BASE_URL}src/assets/images/hero_studio_broadcast_1795184235083.jpg`;
+const HERO_STUDIO_IMAGE = `${import.meta.env.BASE_URL}assets/aistudio/WhatsApp_Image_2026-11-21_at_05.08.28_8c28203a.jpeg`;
 
 interface HomeScreenProps {
   liveStatus: LiveStatusResponse | null;
@@ -148,9 +148,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   ? liveStatus.liveBroadcast.thumbnailUrl
                   : HERO_STUDIO_IMAGE
               }
-              alt={isLive ? liveStatus?.liveBroadcast?.title || 'Live broadcast' : 'HILL MOBILE Studio'}
+              alt={isLive ? liveStatus?.liveBroadcast?.title || 'Live broadcast' : 'HILL MOBILE Broadcast Camera Team'}
               referrerPolicy="no-referrer"
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover object-[center_20%]"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#1C0D1B] via-black/25 to-transparent lg:bg-gradient-to-r lg:from-[#1C0D1B] lg:via-transparent lg:to-transparent" />
             {isLive && (

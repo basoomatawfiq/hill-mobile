@@ -27,6 +27,12 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android build tools
+        run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
@@ -64,7 +70,7 @@ jobs:
             "navigationColorDark": "#120711",
             "backgroundColor": "#120711",
             "enableNotifications": true,
-            "startUrl": "/",
+            "startUrl": "$(echo "$APP_URL" | sed -E 's|^https?://[^/]+([^?]*).*|\1|' | sed 's|/$||')/",
             "iconUrl": "${APP_URL%/}/pwa-512x512.png",
             "maskableIconUrl": "${APP_URL%/}/pwa-maskable-512x512.png",
             "splashScreenFadeOutDuration": 300,

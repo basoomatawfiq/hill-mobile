@@ -39,6 +39,7 @@ function loadYouTubeIframeApi(): Promise<void> {
   ytApiPromise = new Promise<void>((resolve, reject) => {
     const existingScript = document.querySelector('script[src="https://www.youtube.com/iframe_api"]');
     const timeout = window.setTimeout(() => {
+      ytApiPromise = null;
       reject(new Error('YouTube player timed out while loading.'));
     }, 12000);
 
@@ -96,6 +97,8 @@ export const YouTubeEmbedPlayer: React.FC<YouTubeEmbedPlayerProps> = ({
   const reactId = useId().replace(/:/g, '');
   const containerRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<{ destroy: () => void } | null>(null);
+  const onBroadcastEndedRef = useRef(onBroadcastEnded);
+  onBroadcastEndedRef.current = onBroadcastEnded;
   const isOnline = useOnlineStatus();
 
   const [loading, setLoading] = useState(true);
@@ -142,8 +145,8 @@ export const YouTubeEmbedPlayer: React.FC<YouTubeEmbedPlayerProps> = ({
             },
             onStateChange: (event) => {
               // 0 === ENDED
-              if (event.data === 0 && isLive && onBroadcastEnded) {
-                onBroadcastEnded();
+              if (event.data === 0 && isLive && onBroadcastEndedRef.current) {
+                onBroadcastEndedRef.current();
               }
             },
             onError: (event) => {
@@ -171,7 +174,7 @@ export const YouTubeEmbedPlayer: React.FC<YouTubeEmbedPlayerProps> = ({
       }
       playerRef.current = null;
     };
-  }, [videoId, isLive, retrySeed, isOnline, reactId, onBroadcastEnded]);
+  }, [videoId, isLive, retrySeed, isOnline, reactId]);
 
   return (
     <div className="relative w-full overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl">

@@ -90,7 +90,9 @@ export default function App() {
   const [nextPageToken, setNextPageToken] = useState<string | null>(null);
   const [videosLoading, setVideosLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
   const [videosError, setVideosError] = useState<string | null>(null);
+  const [deepLinkError, setDeepLinkError] = useState<string | null>(null);
 
   // Firestore public metadata
   const [categories, setCategories] = useState<CategoryRecord[]>([]);
@@ -145,14 +147,25 @@ export default function App() {
     const onHashChange = () => {
       const parsed = parseHashRoute();
       setRoute(parsed.route);
+      setDeepLinkError(null);
       if (parsed.videoId && (!selectedProgramme || selectedProgramme.videoId !== parsed.videoId)) {
         const match = rawVideos.find((v) => v.videoId === parsed.videoId);
         if (match) {
           setSelectedProgramme(match);
         } else {
-          void fetchVideoDetail(parsed.videoId).then((res) => {
-            if (res.item) setSelectedProgramme(res.item);
-          });
+          void fetchVideoDetail(parsed.videoId)
+            .then((res) => {
+              if (res.item) {
+                setSelectedProgramme(res.item);
+              } else {
+                setDeepLinkError(res.errorMessage || 'This programme could not be found.');
+              }
+            })
+            .catch((err) => {
+              setDeepLinkError(
+                err instanceof Error ? err.message : 'Unable to load programme details.'
+              );
+            });
         }
       }
     };
@@ -237,22 +250,42 @@ export default function App() {
   useEffect(() => {
     const initial = parseHashRoute();
     if (initial.videoId && !selectedProgramme) {
-      void fetchVideoDetail(initial.videoId).then((res) => {
-        if (res.item) setSelectedProgramme(res.item);
-      });
+      setDeepLinkError(null);
+      void fetchVideoDetail(initial.videoId)
+        .then((res) => {
+          if (res.item) {
+            setSelectedProgramme(res.item);
+          } else {
+            setDeepLinkError(res.errorMessage || 'This programme could not be found.');
+          }
+        })
+        .catch((err) => {
+          setDeepLinkError(
+            err instanceof Error ? err.message : 'Unable to load programme details.'
+          );
+        });
     }
   }, [selectedProgramme]);
 
   const handleLoadMore = async () => {
     if (!nextPageToken || loadingMore) return;
     setLoadingMore(true);
+    setLoadMoreError(null);
     try {
       const res = await fetchRecordedVideos({ pageToken: nextPageToken, maxResults: 24 });
+      if (res.errorMessage && res.items.length === 0) {
+        setLoadMoreError(res.errorMessage);
+        return;
+      }
       setRawVideos((prev) => {
         const seen = new Set(prev.map((p) => p.videoId));
         return [...prev, ...res.items.filter((i) => !seen.has(i.videoId))];
       });
       setNextPageToken(res.nextPageToken);
+    } catch (err) {
+      setLoadMoreError(
+        err instanceof Error ? err.message : 'Unable to load more programmes right now.'
+      );
     } finally {
       setLoadingMore(false);
     }
@@ -367,6 +400,7 @@ export default function App() {
               onCategoryChange={setSelectedCategoryId}
               loading={videosLoading}
               loadingMore={loadingMore}
+              loadMoreError={loadMoreError}
               hasMore={Boolean(nextPageToken)}
               error={videosError}
               onLoadMore={() => void handleLoadMore()}
@@ -389,6 +423,7 @@ export default function App() {
               }}
               loading={videosLoading}
               loadingMore={loadingMore}
+              loadMoreError={loadMoreError}
               hasMore={Boolean(nextPageToken)}
               error={videosError}
               onLoadMore={() => void handleLoadMore()}
@@ -421,8 +456,19 @@ export default function App() {
           )}
 
           {(route === 'details' || route === 'player') && !selectedProgramme && (
-            <div className="rounded-2xl border border-white/10 bg-[#1C0D1B] p-8 text-center">
-              <p className="text-sm text-[#C4B0C2]">Loading programme details…</p>
+            <div className="rounded-2xl border border-white/10 bg-[#1C0D1B] p-8 text-center space-y-4">
+              <p className="text-sm text-[#C4B0C2]">
+                {deepLinkError || 'Loading programme details…'}
+              </p>
+              {deepLinkError && (
+                <button
+                  type="button"
+                  onClick={() => navigate('library')}
+                  className="rounded-xl bg-[#7A0F6D] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#941684] cursor-pointer"
+                >
+                  Browse Recorded Programmes
+                </button>
+              )}
             </div>
           )}
 

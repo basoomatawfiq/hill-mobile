@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Bell,
-  BellOff,
+  CheckCircle2,
   ExternalLink,
   Mail,
   MapPin,
@@ -34,15 +34,8 @@ export const NotificationsScreen: React.FC<{
   notifications: NotificationRecord[];
   onNavigate: (route: ScreenRoute) => void;
 }> = ({ notifications, onNavigate }) => {
-  const {
-    supported,
-    permission,
-    isSubscribed,
-    busy,
-    error,
-    enableNotifications,
-    disableNotifications,
-  } = usePushNotifications();
+  const { permission, isSubscribed } = usePushNotifications();
+  const enabledInDevice = permission === 'granted' || isSubscribed;
 
   return (
     <div className="space-y-8 pb-8 max-w-4xl">
@@ -51,60 +44,44 @@ export const NotificationsScreen: React.FC<{
           Broadcast Notifications
         </h1>
         <p className="mt-1 text-sm text-[#C4B0C2]">
-          Receive alerts when a new live broadcast begins or when station announcements are published.
+          Station announcements and live broadcast updates. Notification permissions are managed in your device&apos;s settings.
         </p>
       </div>
 
       <section className="rounded-2xl border border-white/10 bg-[#1C0D1B] p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start gap-3">
+          {enabledInDevice ? (
+            <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
+          ) : (
+            <Bell className="h-5 w-5 text-[#EA6C20] shrink-0 mt-0.5" />
+          )}
           <div className="space-y-1">
             <h2 className="font-display text-lg font-semibold text-[#FAF7FA]">
-              Push Alert Subscription
+              Device Notification Settings
             </h2>
             <p className="text-sm text-[#C4B0C2]">
-              {isSubscribed
-                ? 'Active — You will be notified when HILL MOBILE goes live.'
-                : permission === 'denied'
-                  ? 'Blocked in browser settings. Allow notifications for this site to subscribe.'
-                  : 'Opt in to receive live broadcast alerts on this device.'}
+              {enabledInDevice
+                ? 'Notifications are currently enabled for HILL MOBILE in your device settings.'
+                : 'To turn live broadcast alerts on or off, use your device or browser settings rather than inside the app.'}
             </p>
           </div>
-
-          {isSubscribed ? (
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => void disableNotifications()}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-[#120711] px-4 py-2.5 text-sm font-medium text-[#FAF7FA] hover:bg-[#271325] disabled:opacity-60 cursor-pointer shrink-0"
-            >
-              <BellOff className="h-4 w-4 text-[#C4B0C2]" />
-              <span>{busy ? 'Updating…' : 'Disable Alerts'}</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              disabled={busy || !supported}
-              onClick={() => void enableNotifications()}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#7A0F6D] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#941684] disabled:opacity-60 cursor-pointer shrink-0"
-            >
-              <Bell className="h-4 w-4" />
-              <span>{busy ? 'Enabling…' : 'Enable Live Alerts'}</span>
-            </button>
-          )}
         </div>
 
-        {error && (
-          <div className="rounded-xl border border-amber-500/30 bg-amber-950/30 p-3.5 text-xs text-amber-200">
-            {error}
-          </div>
-        )}
-
-        <div className="pt-3 border-t border-white/10 text-xs text-[#C4B0C2] space-y-1.5 leading-relaxed">
+        <div className="pt-3 border-t border-white/10 text-xs text-[#C4B0C2] space-y-2 leading-relaxed">
           <p>
-            <strong className="text-[#FAF7FA]">Android &amp; Desktop Browsers:</strong> Supported directly in Chrome, Edge, and Firefox over HTTPS.
+            <strong className="text-[#FAF7FA]">Android (Installed App or Chrome):</strong> Open your device{' '}
+            <strong className="text-[#FAF7FA]">Settings → Apps → HILL MOBILE → Notifications</strong> (or Chrome{' '}
+            <strong className="text-[#FAF7FA]">Site Settings → Notifications</strong>) and choose{' '}
+            <strong className="text-[#FAF7FA]">Allow</strong>.
           </p>
           <p>
-            <strong className="text-[#FAF7FA]">iPhone &amp; iPad (iOS 16.4+):</strong> Web notifications require adding HILL MOBILE to your Home Screen via Safari Share → Add to Home Screen, then opening the installed app.
+            <strong className="text-[#FAF7FA]">iPhone &amp; iPad (iOS 16.4+):</strong> Add HILL MOBILE to your Home Screen via Safari Share → Add to Home Screen, then manage alerts under{' '}
+            <strong className="text-[#FAF7FA]">Settings → Notifications → HILL MOBILE</strong>.
+          </p>
+          <p>
+            <strong className="text-[#FAF7FA]">Desktop Browsers:</strong> Click the site-info icon beside the address bar and set{' '}
+            <strong className="text-[#FAF7FA]">Notifications</strong> to <strong className="text-[#FAF7FA]">Allow</strong> or{' '}
+            <strong className="text-[#FAF7FA]">Block</strong>.
           </p>
         </div>
       </section>
@@ -322,7 +299,7 @@ export const SettingsScreen: React.FC<{
               Live Broadcast Alerts
             </h2>
             <p className="mt-1 text-sm text-[#C4B0C2]">
-              Configure push notification permissions for new live broadcasts.
+              Notifications are managed in your device settings. View recent station announcements and setup steps here.
             </p>
           </div>
           <button
@@ -330,7 +307,7 @@ export const SettingsScreen: React.FC<{
             onClick={() => onNavigate('notifications')}
             className="rounded-xl border border-white/15 bg-[#120711] px-4 py-2 text-sm font-medium text-[#FAF7FA] hover:bg-[#271325] cursor-pointer shrink-0"
           >
-            Manage Alerts
+            View Alerts
           </button>
         </div>
 

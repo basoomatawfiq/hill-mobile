@@ -236,6 +236,18 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
     }
   };
 
+  const handleDeleteCategory = async (cat: CategoryRecord) => {
+    setFeedback(null);
+    try {
+      await deleteCategory(cat.id);
+      await onDataChanged();
+      await loadAdminExtras();
+      setFeedback({ kind: 'ok', text: `Deleted category "${cat.name}".` });
+    } catch (err) {
+      setFeedback({ kind: 'err', text: err instanceof Error ? err.message : 'Failed to delete category.' });
+    }
+  };
+
   const handleAssignCategory = async (prog: ProgrammeItem, categoryId: string) => {
     setFeedback(null);
     const cat = categories.find((c) => c.id === categoryId) || null;
@@ -267,17 +279,23 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
 
   const handleSendAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanTitle = notifTitle.trim();
+    const cleanBody = notifBody.trim();
+    if (!cleanTitle || !cleanBody) {
+      setFeedback({ kind: 'err', text: 'Announcement title and message body cannot be blank.' });
+      return;
+    }
     setSendingNotif(true);
     setFeedback(null);
     try {
       await createNotificationRecord({
         type: 'announcement',
-        title: notifTitle,
-        body: notifBody,
+        title: cleanTitle,
+        body: cleanBody,
       });
       const pushRes = await adminSendPushBroadcast({
-        title: notifTitle,
-        body: notifBody,
+        title: cleanTitle,
+        body: cleanBody,
         url: '/#/notifications',
       });
       setNotifTitle('');
@@ -566,11 +584,7 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
                   </div>
                   <button
                     type="button"
-                    onClick={async () => {
-                      await deleteCategory(cat.id);
-                      await onDataChanged();
-                      await loadAdminExtras();
-                    }}
+                    onClick={() => void handleDeleteCategory(cat)}
                     aria-label={`Delete ${cat.name}`}
                     className="flex h-9 w-9 items-center justify-center rounded-lg text-[#C4B0C2] hover:bg-red-500/15 hover:text-red-400 cursor-pointer"
                   >

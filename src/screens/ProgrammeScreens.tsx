@@ -50,10 +50,11 @@ export const ProgrammeDetailsScreen: React.FC<ProgrammeDetailsScreenProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [programme]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [programme.videoId]);
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/#/programme/${freshItem.videoId}`;
+    const shareUrl = `${window.location.origin}${window.location.pathname}#/programme/${freshItem.videoId}`;
     try {
       if (navigator.share) {
         await navigator.share({ title: freshItem.title, url: shareUrl });

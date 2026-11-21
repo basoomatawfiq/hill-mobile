@@ -13,6 +13,7 @@ interface RecordedLibraryScreenProps {
   onCategoryChange: (categoryId: string) => void;
   loading: boolean;
   loadingMore: boolean;
+  loadMoreError?: string | null;
   hasMore: boolean;
   error: string | null;
   onLoadMore: () => void;
@@ -30,6 +31,7 @@ export const RecordedLibraryScreen: React.FC<RecordedLibraryScreenProps> = ({
   onCategoryChange,
   loading,
   loadingMore,
+  loadMoreError,
   hasMore,
   error,
   onLoadMore,
@@ -126,6 +128,12 @@ export const RecordedLibraryScreen: React.FC<RecordedLibraryScreenProps> = ({
             ))}
           </div>
 
+          {loadMoreError && (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-950/30 p-3.5 text-center text-xs text-amber-200">
+              {loadMoreError}
+            </div>
+          )}
+
           {hasMore && selectedCategoryId === 'all' && (
             <div className="flex justify-center pt-4">
               <button
@@ -164,6 +172,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [remoteResults, setRemoteResults] = useState<ProgrammeItem[] | null>(null);
   const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   const trimmed = queryText.trim().toLowerCase();
 
@@ -196,6 +205,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSearchError(null);
     if (!trimmed) {
       setRemoteResults(null);
       return;
@@ -204,6 +214,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
     try {
       const results = await onSearchServer(trimmed);
       setRemoteResults(results);
+    } catch (err) {
+      setSearchError(err instanceof Error ? err.message : 'Unable to search server right now.');
     } finally {
       setSearching(false);
     }
@@ -284,6 +296,12 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
               {cat.name}
             </button>
           ))}
+        </div>
+      )}
+
+      {searchError && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-950/30 p-3.5 text-xs text-amber-200">
+          {searchError} — Showing matching programmes from the loaded library below.
         </div>
       )}
 

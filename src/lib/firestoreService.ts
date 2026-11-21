@@ -223,11 +223,15 @@ export async function assignProgrammeCategory(
     const categoryId = category?.id || '';
     const categoryName = category?.name || '';
 
+    const safeThumbnail =
+      sanitizeStr(programme.thumbnailUrl, BLUEPRINT_LIMITS.thumbnailUrlMax) ||
+      `https://i.ytimg.com/vi/${programme.videoId}/hqdefault.jpg`;
+
     if (existing.exists()) {
       await updateDoc(docRef, {
         title: sanitizeStr(programme.title, BLUEPRINT_LIMITS.programmeTitleMax),
         description: sanitizeStr(programme.description, BLUEPRINT_LIMITS.programmeDescMax),
-        thumbnailUrl: sanitizeStr(programme.thumbnailUrl, BLUEPRINT_LIMITS.thumbnailUrlMax),
+        thumbnailUrl: safeThumbnail,
         publishedAt: sanitizeStr(programme.publishedAt || new Date().toISOString(), 64),
         categoryId,
         categoryName,
@@ -240,7 +244,7 @@ export async function assignProgrammeCategory(
         videoId: programme.videoId,
         title: sanitizeStr(programme.title, BLUEPRINT_LIMITS.programmeTitleMax),
         description: sanitizeStr(programme.description, BLUEPRINT_LIMITS.programmeDescMax),
-        thumbnailUrl: sanitizeStr(programme.thumbnailUrl, BLUEPRINT_LIMITS.thumbnailUrlMax),
+        thumbnailUrl: safeThumbnail,
         publishedAt: sanitizeStr(programme.publishedAt || new Date().toISOString(), 64),
         categoryId,
         categoryName,
@@ -285,13 +289,17 @@ export async function setProgrammeFeatured(
   const featPath = `featured_programmes/${programme.videoId}`;
   const progPath = `programmes/${programme.videoId}`;
 
+  const safeThumbnail =
+    sanitizeStr(programme.thumbnailUrl, BLUEPRINT_LIMITS.thumbnailUrlMax) ||
+    `https://i.ytimg.com/vi/${programme.videoId}/hqdefault.jpg`;
+
   try {
     if (featured) {
       const existing = await getDoc(doc(db, 'featured_programmes', programme.videoId));
       const payload = {
         videoId: programme.videoId,
         title: sanitizeStr(programme.title, BLUEPRINT_LIMITS.programmeTitleMax),
-        thumbnailUrl: sanitizeStr(programme.thumbnailUrl, BLUEPRINT_LIMITS.thumbnailUrlMax),
+        thumbnailUrl: safeThumbnail,
         publishedAt: sanitizeStr(programme.publishedAt || new Date().toISOString(), 64),
         categoryName: sanitizeStr(programme.categoryName || 'Featured', BLUEPRINT_LIMITS.categoryNameMax),
         note: sanitizeStr(note, BLUEPRINT_LIMITS.featuredNoteMax),
@@ -324,7 +332,7 @@ export async function setProgrammeFeatured(
         videoId: programme.videoId,
         title: sanitizeStr(programme.title, BLUEPRINT_LIMITS.programmeTitleMax),
         description: sanitizeStr(programme.description, BLUEPRINT_LIMITS.programmeDescMax),
-        thumbnailUrl: sanitizeStr(programme.thumbnailUrl, BLUEPRINT_LIMITS.thumbnailUrlMax),
+        thumbnailUrl: safeThumbnail,
         publishedAt: sanitizeStr(programme.publishedAt || new Date().toISOString(), 64),
         categoryId: programme.categoryId || '',
         categoryName: programme.categoryName || '',

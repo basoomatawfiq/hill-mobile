@@ -40,7 +40,9 @@ jobs:
       - name: Configure Bubblewrap JDK & Android SDK
         run: |
           mkdir -p ~/.bubblewrap
-          SDK_DIR="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDK_DIR="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          test -d "$SDK_DIR/platforms/android-35"
+          test -d "$SDK_DIR/build-tools/35.0.0"
           cat <<EOF > ~/.bubblewrap/config.json
           {
             "jdkPath": "${JAVA_HOME}",

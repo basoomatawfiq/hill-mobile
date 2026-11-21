@@ -73,7 +73,33 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
   };
 }
 
+async function fetchStaticYouTubeCache(): Promise<RecordedProgrammesResponse> {
+  const response = await fetch(`${import.meta.env.BASE_URL}youtube-videos.json`, {
+    cache: 'no-cache',
+  });
+  if (!response.ok) {
+    throw new Error('The static YouTube video catalogue could not be loaded.');
+  }
+  return (await response.json()) as RecordedProgrammesResponse;
+}
+
+function isPagesDeployment(): boolean {
+  return window.location.hostname.endsWith('.github.io');
+}
+
 export function fetchLiveStatus(force = false): Promise<LiveStatusResponse> {
+  if (isPagesDeployment()) {
+    return fetchStaticYouTubeCache().then((cache) => ({
+      configured: true,
+      isLive: false,
+      hasUpcoming: false,
+      liveBroadcast: null,
+      upcomingBroadcast: null,
+      channel: cache.channel,
+      checkedAt: cache.checkedAt,
+      fromCache: true,
+    }));
+  }
   return getJson<LiveStatusResponse>(`/api/youtube/live${force ? '?force=true' : ''}`);
 }
 
@@ -82,6 +108,19 @@ export function fetchRecordedVideos(params?: {
   maxResults?: number;
   q?: string;
 }): Promise<RecordedProgrammesResponse> {
+  if (isPagesDeployment()) {
+    return fetchStaticYouTubeCache().then((cache) => {
+      const query = (params?.q || '').trim().toLowerCase();
+      const items = query
+        ? cache.items.filter((item) =>
+            item.title.toLowerCase().includes(query) ||
+            item.description.toLowerCase().includes(query)
+          )
+        : cache.items;
+      const maxResults = Math.min(Math.max(params?.maxResults || 24, 1), 50);
+      return { ...cache, items: items.slice(0, maxResults), totalResults: items.length };
+    });
+  }
   const sp = new URLSearchParams();
   if (params?.pageToken) sp.set('pageToken', params.pageToken);
   if (params?.maxResults) sp.set('maxResults', String(params.maxResults));
@@ -91,6 +130,18 @@ export function fetchRecordedVideos(params?: {
 }
 
 export function fetchVideoDetail(videoId: string): Promise<VideoDetailResponse> {
+  if (isPagesDeployment()) {
+    return fetchStaticYouTubeCache().then((cache) => {
+      const item = cache.items.find((candidate) => candidate.videoId === videoId);
+      return {
+        configured: true,
+        available: Boolean(item),
+        item: item || null,
+        errorCode: item ? undefined : 'VIDEO_NOT_FOUND',
+        errorMessage: item ? undefined : 'This programme could not be found in the latest channel catalogue.',
+      };
+    });
+  }
   return getJson<VideoDetailResponse>(`/api/youtube/video/${encodeURIComponent(videoId)}`);
 }
 

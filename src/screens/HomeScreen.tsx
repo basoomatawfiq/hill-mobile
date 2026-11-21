@@ -20,7 +20,7 @@ import type {
   ScreenRoute,
 } from '../types.ts';
 
-const HERO_STUDIO_IMAGE = '/src/assets/images/hero_studio_broadcast_1795184235083.jpg';
+const HERO_STUDIO_IMAGE = `${import.meta.env.BASE_URL}src/assets/images/hero_studio_broadcast_1795184235083.jpg`;
 
 interface HomeScreenProps {
   liveStatus: LiveStatusResponse | null;

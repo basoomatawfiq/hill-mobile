@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Play } from 'lucide-react';
 import type { ProgrammeItem } from '../types.ts';
 
-const FALLBACK_ART = '/src/assets/images/category_lectures_1795184235217.jpg';
+const FALLBACK_ART = `${import.meta.env.BASE_URL}src/assets/images/category_lectures_1795184235217.jpg`;
 
 export function formatPublishedDate(iso: string): string {
   if (!iso) return 'Date unavailable';

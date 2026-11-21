@@ -16,7 +16,7 @@ import { useOnlineStatus } from '../hooks/useOnlineStatus.ts';
 import { usePushNotifications } from '../hooks/usePushNotifications.ts';
 import type { AppSettingsRecord, NotificationRecord, ScreenRoute } from '../types.ts';
 
-const ABOUT_SANCTUARY_IMAGE = '/src/assets/images/about_hill_sanctuary_1795184241660.jpg';
+const ABOUT_SANCTUARY_IMAGE = `${import.meta.env.BASE_URL}src/assets/images/about_hill_sanctuary_1795184241660.jpg`;
 
 function formatTimestamp(ts: unknown): string {
   if (!ts) return 'Recently';

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const HILL_LOGO_URL = '/assets/aistudio/WhatsApp_Image_2026-11-20_at_06.30.25_17e6e149.jpeg';
+export const HILL_LOGO_URL = `${import.meta.env.BASE_URL}assets/aistudio/WhatsApp_Image_2026-11-20_at_06.30.25_17e6e149.jpeg`;
 
 export const BrandCrest: React.FC<{ className?: string }> = ({ className = 'h-9 w-9' }) => (
   <img

@@ -103,9 +103,11 @@ jobs:
           echo "sdk.dir=$SDK_DIR" > local.properties
           bubblewrap update --skipVersionUpgrade
           sed -i 's/minSdkVersion[[:space:]]*21/minSdkVersion 24/g' app/build.gradle
-          sed -i '/android {/a\    signingConfigs {\n        release {\n            storeFile file("../android.keystore")\n            storePassword System.getenv("BUBBLEWRAP_KEYSTORE_PASSWORD")\n            keyAlias "hillmobile"\n            keyPassword System.getenv("BUBBLEWRAP_KEY_PASSWORD")\n        }\n    }' app/build.gradle
-          sed -i '/release {/a\            signingConfig signingConfigs.release' app/build.gradle
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file="$PWD/android.keystore" \
+            -Pandroid.injected.signing.store.password="${BUBBLEWRAP_KEYSTORE_PASSWORD}" \
+            -Pandroid.injected.signing.key.alias="hillmobile" \
+            -Pandroid.injected.signing.key.password="${BUBBLEWRAP_KEY_PASSWORD}"
           APK_FILE="$(find app/build/outputs/apk/release -name '*.apk' -type f | head -n 1)"
           test -n "$APK_FILE"
           "$SDK_DIR/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK_FILE"

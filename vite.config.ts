@@ -6,7 +6,9 @@ import {defineConfig} from 'vite';
 import {VitePWA} from 'vite-plugin-pwa';
 
 export default defineConfig(() => {
+  const base = process.env.GITHUB_PAGES === 'true' ? '/hill-mobile/' : '/';
   return {
+    base,
     plugins: [
       react(),
       tailwindcss(),
@@ -30,23 +32,23 @@ export default defineConfig(() => {
           theme_color: '#7A0F6D',
           background_color: '#120711',
           display: 'standalone',
-          start_url: '/',
-          scope: '/',
+          start_url: base,
+          scope: base,
           icons: [
             {
-              src: '/pwa-192x192.png',
+              src: `${base}pwa-192x192.png`,
               sizes: '192x192',
               type: 'image/png',
               purpose: 'any',
             },
             {
-              src: '/pwa-512x512.png',
+              src: `${base}pwa-512x512.png`,
               sizes: '512x512',
               type: 'image/png',
               purpose: 'any',
             },
             {
-              src: '/pwa-maskable-512x512.png',
+              src: `${base}pwa-maskable-512x512.png`,
               sizes: '512x512',
               type: 'image/png',
               purpose: 'maskable',
@@ -54,7 +56,7 @@ export default defineConfig(() => {
           ],
         },
         workbox: {
-          importScripts: ['/push-sw.js'],
+          importScripts: [`${base}push-sw.js`],
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,jpg}'],
           navigateFallback: '/index.html',
           navigateFallbackDenylist: [/^\/api\//],
